@@ -98,7 +98,7 @@ def lower_res_frames(frames_array, frame_to_start, duration):
 		frames_array[frame_to_start + i] = temp
 
 
-def speed_up_old(frames_array, frame_to_start, duration):
+def speed_up_delete(frames_array, frame_to_start, duration):
 	print('func: speed_up')
 	delete_index = []
 	for i in range(frame_to_start, frame_to_start + duration, 2):
@@ -108,7 +108,8 @@ def speed_up_old(frames_array, frame_to_start, duration):
 	new_frames_array = np.delete(frames_array, delete_index, axis=0)
 	return new_frames_array
 
-def speed_up(frames_array, frame_to_start, duration, saved):
+
+def speed_up(frames_array, frame_to_start, saved):
 	print('func: speed_up_old')
 
 	frames_copy = copy.deepcopy(frames_array)
@@ -116,12 +117,17 @@ def speed_up(frames_array, frame_to_start, duration, saved):
 	saved_fast = []
 
 	for i in range(saved.shape[0]):
-		saved_fast[i] = frames_copy[frame_to_start + i]
+		saved_fast.append(frames_copy[frame_to_start + i])
 
 	saved_fast = numpy.asarray(saved_fast, dtype=np.uint8)  # 125
 	total_saved = np.concatenate((saved, saved_fast), axis=0)  # 250
+	total_saved = speed_up_delete(total_saved, 0, total_saved.shape[0])
 
-	print('s')
+	for i in range(total_saved.shape[0]):
+		frames_array[frame_to_start + i] = total_saved[i]
+
+	return frames_array
+
 
 def slow_down(frames_array, frame_to_start, duration):
 	print('func: slow_down')
@@ -149,84 +155,3 @@ def slow_down(frames_array, frame_to_start, duration):
 
 	saved = numpy.asarray(saved, dtype=np.uint8)
 	return saved
-
-
-
-
-
-
-
-
-
-
-'''
-# DENEMELER
-
-print('here 1')
-
-vidname = '02.avi'
-info_result = vid_info(vidname)
-print(info_result[1])
-
-buffer = vid_to_frames(vidname)
-print(buffer.shape)
-
-#
-#lowered_frame = lower_res_frame(buffer[100])
-#cv2.imshow('lowered_frame', lowered_frame)
-#cv2.waitKey(0)
-#
-
-print('here 2')
-
-#frames_to_vid(buffer, 25, None, 'adv.mp4')
-
-
-## VID FREEZE & LOWER RES
-#print('here 3')
-#vid_freeze(buffer, 50, 100)
-#lower_res_frames(buffer, 150, 75)
-
-#frames_to_vid(buffer, 25, None, '02_adv.avi')
-
-
-
-##SPEED UP
-#a = speed_up(buffer, 100, 100)
-#print(a.shape)
-#frames_to_vid(a, 25, None, 'aaa.avi')
-
-
-##SLOW DOWN & SAVED
-svd_slow = slow_down(buffer, 100, 100)
-print(buffer.shape)
-print(svd_slow.shape)
-
-frames_to_vid(buffer, 25, None, 'buffer_slowed.avi')
-frames_to_vid(svd_slow, 25, None, 'svd_slowed.avi')
-
-
-##VID FREEZE & SAVED
-#svd_freeze = vid_freeze(buffer, 100, 100)
-#print(buffer.shape)
-#print(svd_freeze.shape)
-
-#frames_to_vid(buffer, 25, None, 'buffer_frozen.avi')
-#frames_to_vid(svd_freeze, 25, None, 'svd_frozen.avi')
-
-
-"""
-from moviepy.editor import VideoFileClip
-import moviepy.video.fx.all as vfx
-
-
-out_loc = 'dummy_out.avi'
-clip = VideoFileClip("02_adv.avi")
-clip = clip.subclip(4, 6)
-final = clip.fx(vfx.speedx, 5)
-final.write_videofile(out_loc, codec="libx264")
-
-"""
-
-
-'''
