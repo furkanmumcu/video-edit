@@ -104,7 +104,7 @@ def speed_up_delete(frames_array, frame_to_start, duration):
 	for i in range(frame_to_start, frame_to_start + duration, 2):
 		delete_index.append(i)
 
-	print(len(delete_index))
+	#print(len(delete_index))
 	new_frames_array = np.delete(frames_array, delete_index, axis=0)
 	return new_frames_array
 
