@@ -2,6 +2,3 @@ venv/
 .idea/
 dump/
 __pycache__/
-avenue_dataset_combine/
-avenue_dataset_low_resolution/
-avenue_dataset_slow_start/

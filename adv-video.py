@@ -3,7 +3,7 @@ import utils
 import random
 
 
-def create_adv_vid_slow_start(vid_name, start_frame, duration):
+def create_adv_vid_slow_fast(vid_name, start_frame, duration):
 	print('create_adv_vid')
 
 	vid_frames = utils.vid_to_frames(vid_name)
@@ -20,7 +20,7 @@ def create_adv_vid_slow_start(vid_name, start_frame, duration):
 
 	print(vid_frames.shape)
 
-	new_vid_name = 'avenue_dataset_slow_start/adv' + vid_name
+	new_vid_name = 'avenue_dataset_slow_fast/adv' + vid_name
 	utils.frames_to_vid(vid_frames, 25, None, new_vid_name)
 	return vid_frames
 
@@ -34,7 +34,7 @@ def create_adv_vid_low_resolution(vid_name, start_frame, duration):
 
 
 def create_adv_vid_combine(vid_name, start_frame, duration):
-	frames = create_adv_vid_slow_start(vid_name, start_frame, duration)
+	frames = create_adv_vid_slow_fast(vid_name, start_frame, duration)
 	utils.lower_res_frames(frames, start_frame, duration)
 
 	new_vid_name = 'avenue_dataset_combine/adv' + vid_name
@@ -58,7 +58,7 @@ def noise_avenue_dataset():
 			start_frame = start_sec * 25
 			#print(start_frame)
 
-			create_adv_vid_slow_start(vid_name, start_frame, 100)
+			create_adv_vid_slow_fast(vid_name, start_frame, 100)
 			create_adv_vid_low_resolution(vid_name, start_frame, 100)
 			create_adv_vid_combine(vid_name, start_frame, 100)
 
