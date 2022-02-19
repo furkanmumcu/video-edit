@@ -20,7 +20,7 @@ def create_adv_vid_slow_fast(vid_name, start_frame, duration):
 
 	print(vid_frames.shape)
 
-	new_vid_name = 'avenue_dataset_slow_fast/adv' + vid_name
+	new_vid_name = 'avenue_dataset_slow_fast/' + vid_name
 	utils.frames_to_vid(vid_frames, 25, None, new_vid_name)
 	return vid_frames
 
@@ -29,7 +29,7 @@ def create_adv_vid_low_resolution(vid_name, start_frame, duration):
 	vid_frames = utils.vid_to_frames(vid_name)
 	utils.lower_res_frames(vid_frames, start_frame, duration)
 
-	new_vid_name = 'avenue_dataset_low_resolution/adv' + vid_name
+	new_vid_name = 'avenue_dataset_low_resolution/' + vid_name
 	utils.frames_to_vid(vid_frames, 25, None, new_vid_name)
 
 
@@ -37,12 +37,13 @@ def create_adv_vid_combine(vid_name, start_frame, duration):
 	frames = create_adv_vid_slow_fast(vid_name, start_frame, duration)
 	utils.lower_res_frames(frames, start_frame, duration)
 
-	new_vid_name = 'avenue_dataset_combine/adv' + vid_name
+	new_vid_name = 'avenue_dataset_combine/' + vid_name
 	utils.frames_to_vid(frames, 25, None, new_vid_name)
 
 
-def noise_avenue_dataset():
-	for i in range(17, 22, 1):
+def noise_avenue_dataset(duration_secs, vid_frame):
+	duration_frames = int(duration_secs * 25)
+	for i in range(1, 22, 1):
 		if i < 10:
 			vid_name = '0' + str(i) + '.avi'
 		else:
@@ -51,16 +52,16 @@ def noise_avenue_dataset():
 		vidinf = utils.vid_info(vid_name)
 		#print(vidinf[0])
 
-		if vidinf[0] >= 125:
-			secs = int(vidinf[0] / 25)
-			secs = secs - 5
+		if vidinf[0] >= duration_frames + vid_frame:
+			secs = int(vidinf[0] / vid_frame)
+			secs = secs - duration_secs + 1
 			start_sec = random.randint(1, secs)
-			start_frame = start_sec * 25
+			start_frame = start_sec * vid_frame
 			#print(start_frame)
 
-			create_adv_vid_slow_fast(vid_name, start_frame, 100)
-			create_adv_vid_low_resolution(vid_name, start_frame, 100)
-			create_adv_vid_combine(vid_name, start_frame, 100)
+			create_adv_vid_slow_fast(vid_name, start_frame, duration_frames)
+			create_adv_vid_low_resolution(vid_name, start_frame, duration_frames)
+			create_adv_vid_combine(vid_name, start_frame, duration_frames)
 
 
-noise_avenue_dataset()
+noise_avenue_dataset(4, 25)
