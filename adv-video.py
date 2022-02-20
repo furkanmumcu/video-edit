@@ -43,7 +43,7 @@ def create_adv_vid_combine(vid_name, start_frame, duration):
 
 def noise_avenue_dataset(duration_secs, vid_frame):
 	duration_frames = int(duration_secs * 25)
-	for i in range(1, 22, 1):
+	for i in range(19, 22, 1):
 		if i < 10:
 			vid_name = '0' + str(i) + '.avi'
 		else:
@@ -64,4 +64,4 @@ def noise_avenue_dataset(duration_secs, vid_frame):
 			create_adv_vid_combine(vid_name, start_frame, duration_frames)
 
 
-noise_avenue_dataset(4, 25)
+noise_avenue_dataset(8, 25)

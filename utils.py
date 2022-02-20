@@ -4,6 +4,7 @@ import numpy
 import numpy as np
 from PIL import Image
 import copy
+import time
 
 
 # input: video name
@@ -85,6 +86,7 @@ def lower_res_frame(frame):
 	frame_lower = cv2.imread('temp_img/frame_lower.jpg')
 
 	#delete files
+	image_file.close()
 	os.remove("temp_img/frame.jpg")
 	os.remove("temp_img/frame_lower.jpg")
 
