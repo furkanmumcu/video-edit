@@ -41,7 +41,7 @@ def create_adv_vid_combine(vid_name, start_frame, duration):
 	utils.frames_to_vid(frames, 25, None, new_vid_name)
 
 
-def noise_avenue_dataset(duration_secs, vid_frame):
+def noise_avenue_dataset(duration_secs, vid_fps):
 	duration_frames = int(duration_secs * 25)
 	for i in range(19, 22, 1):
 		if i < 10:
@@ -50,14 +50,12 @@ def noise_avenue_dataset(duration_secs, vid_frame):
 			vid_name = str(i) + '.avi'
 
 		vidinf = utils.vid_info(vid_name)
-		#print(vidinf[0])
 
-		if vidinf[0] >= duration_frames + vid_frame:
-			secs = int(vidinf[0] / vid_frame)
+		if vidinf[0] >= duration_frames + vid_fps:
+			secs = int(vidinf[0] / vid_fps)
 			secs = secs - duration_secs + 1
 			start_sec = random.randint(1, secs)
-			start_frame = start_sec * vid_frame
-			#print(start_frame)
+			start_frame = start_sec * vid_fps
 
 			create_adv_vid_slow_fast(vid_name, start_frame, duration_frames)
 			create_adv_vid_low_resolution(vid_name, start_frame, duration_frames)
