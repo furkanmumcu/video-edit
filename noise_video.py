@@ -41,6 +41,7 @@ def create_adv_vid_combine(vid_name, start_frame, duration):
 	utils.frames_to_vid(frames, 25, None, new_vid_name)
 
 
+# todo: create folders beforehand
 def noise_avenue_dataset(duration_secs, vid_fps):
 	duration_frames = int(duration_secs * 25)
 	for i in range(19, 22, 1):
@@ -53,7 +54,7 @@ def noise_avenue_dataset(duration_secs, vid_fps):
 
 		if vidinf[0] >= duration_frames + vid_fps:
 			secs = int(vidinf[0] / vid_fps)
-			secs = secs - duration_secs + 1
+			secs = secs - duration_secs + 1  # todo change to -1
 			start_sec = random.randint(1, secs)
 			start_frame = start_sec * vid_fps
 
@@ -79,7 +80,8 @@ def create_adv_frames_slow_fast(vid_frames, start_frame, duration):
 	return vid_frames
 
 
-def noise_shanghai_dataset():
+def noise_shanghai_dataset(duration):
+	print('noise_shanghai_dataset')
 	# 1) get original data folder names
 	original_data_path = 'shanghaitech'
 	folders = utils.list_subfolders(original_data_path)
@@ -96,22 +98,30 @@ def noise_shanghai_dataset():
 
 	# 3) attack for each video
 	for i in range(0, len(folders), 1):
-		# 3.1) low-res attack
-		print('low-res attack for: ' + folders[i])
 		frames_1 = utils.folder_to_frames(folders[i], original_data_path)
-		utils.lower_res_frames(frames_1, 100, 100)  # start / duration
-		utils.frames_to_jpg(frames_1, adv_data_path_lower_resolution + '/' + folders[i])
-
-		# 3.2) slow-fast attack
-		print('slow-fast attack for: ' + folders[i])
 		frames_2 = utils.folder_to_frames(folders[i], original_data_path)
-		create_adv_frames_slow_fast(frames_2, 100, 100)
-		utils.frames_to_jpg(frames_2, adv_data_path_slow_fast + '/' + folders[i])
 
-		# 3.3) combined attack
-		print('combined attack attack for: ' + folders[i])
-		create_adv_frames_slow_fast(frames_1, 100, 100)  # frames1 already has low quality, just apply slow-fast
-		utils.frames_to_jpg(frames_1, adv_data_path_combine + '/' + folders[i])
+		start_frame = random.randint(1, frames_1.shape[0] - duration - 1)
+
+		if frames_1.shape[0] > duration:
+			# 3.1) low-res attack
+			print('low-res attack for: ' + folders[i])
+			utils.lower_res_frames(frames_1, start_frame, duration)  # start / duration
+			utils.frames_to_jpg(frames_1, adv_data_path_lower_resolution + '/' + folders[i])
+
+			# 3.2) slow-fast attack
+			print('slow-fast attack for: ' + folders[i])
+			create_adv_frames_slow_fast(frames_2, start_frame, duration)
+			utils.frames_to_jpg(frames_2, adv_data_path_slow_fast + '/' + folders[i])
+
+			# 3.3) combined attack
+			print('combined attack attack for: ' + folders[i])
+			create_adv_frames_slow_fast(frames_1, start_frame, duration)  # frames1 already has low quality, just apply slow-fast
+			utils.frames_to_jpg(frames_1, adv_data_path_combine + '/' + folders[i])
+		else:
+			utils.frames_to_jpg(frames_1, adv_data_path_lower_resolution + '/' + folders[i])
+			utils.frames_to_jpg(frames_1, adv_data_path_slow_fast + '/' + folders[i])
+			utils.frames_to_jpg(frames_1, adv_data_path_combine + '/' + folders[i])
 
 
-noise_shanghai_dataset()
+noise_shanghai_dataset(100)
