@@ -86,11 +86,26 @@ def lower_res_frame(frame):
 	frame_lower = cv2.imread('temp_img/frame_lower.jpg')
 
 	#delete files
-	image_file.close()
-	os.remove("temp_img/frame.jpg")
-	os.remove("temp_img/frame_lower.jpg")
+	#os.remove("temp_img/frame.jpg")
+	#os.remove("temp_img/frame_lower.jpg")
+	safe_remove("temp_img/frame.jpg")
+	safe_remove("temp_img/frame_lower.jpg")
 
 	return frame_lower
+
+
+def safe_remove(path, retries=3, sleep=0.1):
+	for i in range(retries):
+		try:
+			os.remove(path)
+		except WindowsError:
+			if i == 2:
+				Exception('removing still gives trouble')
+			else:
+				print('caught error while removing, going to sleep... ' + str(i))
+			time.sleep(sleep)
+		else:
+			break
 
 
 def lower_res_frames(frames_array, frame_to_start, duration):
@@ -101,7 +116,7 @@ def lower_res_frames(frames_array, frame_to_start, duration):
 
 
 def speed_up_delete(frames_array, frame_to_start, duration):
-	print('func: speed_up')
+	print('func: speed_up_delete')
 	delete_index = []
 	for i in range(frame_to_start, frame_to_start + duration, 2):
 		delete_index.append(i)
@@ -112,7 +127,7 @@ def speed_up_delete(frames_array, frame_to_start, duration):
 
 
 def speed_up(frames_array, frame_to_start, saved):
-	print('func: speed_up_old')
+	print('func: speed_up')
 
 	frames_copy = copy.deepcopy(frames_array)
 
@@ -157,3 +172,68 @@ def slow_down(frames_array, frame_to_start, duration):
 
 	saved = numpy.asarray(saved, dtype=np.uint8)
 	return saved
+
+
+# saves the frames of a video as jpg
+def vid_to_jpg(vid_name):
+	vid_name_ext = vid_name + '.avi'
+	vid_frames = vid_to_frames(vid_name_ext)
+
+	digits = len(str(vid_frames.shape[0]))
+	for i in range(vid_frames.shape[0]):
+		frame_index_str = '0' * (digits - len(str(i))) + str(i)
+
+		path = vid_name + '/'
+		frame_name = frame_index_str + ".jpg"
+		cv2.imwrite(path + frame_name, vid_frames[i])
+
+
+# used for avenue dataset to jpg
+def vids_to_jpg():
+	for i in range(1, 22, 1):
+		if i < 10:
+			vid_to_jpg('0' + str(i))
+		else:
+			vid_to_jpg(str(i))
+
+
+def frames_to_jpg(vid_frames, path):
+	digits = len(str(vid_frames.shape[0]))
+	path = path + '/'
+	for i in range(vid_frames.shape[0]):
+		frame_index_str = '0' * (digits - len(str(i))) + str(i)
+
+		frame_name = frame_index_str + ".jpg"
+		cv2.imwrite(path + frame_name, vid_frames[i])
+
+
+def folder_to_frames(folder_name, path):
+	frames = []
+	path = path + '/'
+	folder_name = path + folder_name
+
+	for filename in os.listdir(folder_name):
+		img = cv2.imread(os.path.join(folder_name, filename))
+		if img is not None:
+			frames.append(img)
+
+	frames = numpy.asarray(frames, dtype=np.uint8)
+	return frames
+
+
+# list of subfolders of a directory
+def list_subfolders(path):
+	subfolders = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
+	return subfolders
+
+
+def create_folders(sub_folder_names, main_folder):
+	#create main folder first
+	if not os.path.exists(main_folder):
+		os.makedirs(main_folder)
+
+	#create folders
+	for i in range(len(sub_folder_names)):
+		subfolder_name = main_folder + '/' + sub_folder_names[i]
+		if not os.path.exists(subfolder_name):
+			os.makedirs(subfolder_name)
