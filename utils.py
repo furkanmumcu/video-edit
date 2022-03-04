@@ -80,7 +80,7 @@ def lower_res_frame(frame):
 
 	# lower the quality of jpg file
 	image_file = Image.open("temp_img/frame.jpg")
-	image_file.save("temp_img/frame_lower.jpg", quality=10)
+	image_file.save("temp_img/frame_lower.jpg", quality=5)
 
 	# lowered jpg -> np array
 	frame_lower = cv2.imread('temp_img/frame_lower.jpg')
@@ -142,6 +142,31 @@ def speed_up(frames_array, frame_to_start, saved):
 
 	for i in range(total_saved.shape[0]):
 		frames_array[frame_to_start + i] = total_saved[i]
+
+	return frames_array
+
+
+def speed_up_second(frames_array, frame_to_start, saved):
+	print('func: speed_up_second')
+	frames_copy = copy.deepcopy(frames_array)
+	saved_fast = []
+
+	for i in range(25):
+		saved_fast.append(frames_copy[frame_to_start + i])
+
+	saved_fast = numpy.asarray(saved_fast, dtype=np.uint8)
+	total_saved = np.concatenate((saved, saved_fast), axis=0)
+
+	# pick 25 frames from total saved
+	distilled = []
+	distilled_rate = int(total_saved.shape[0] / 25)
+	for i in range(25):
+		distilled.append(total_saved[i * distilled_rate])
+
+	distilled = numpy.asarray(distilled, dtype=np.uint8)
+
+	for i in range(25):
+		frames_array[frame_to_start + i] = distilled[i]
 
 	return frames_array
 
@@ -227,7 +252,7 @@ def list_subfolders(path):
 	return subfolders
 
 
-def create_folders(sub_folder_names, main_folder):
+def create_subfolders(sub_folder_names, main_folder):
 	#create main folder first
 	if not os.path.exists(main_folder):
 		os.makedirs(main_folder)
@@ -237,3 +262,45 @@ def create_folders(sub_folder_names, main_folder):
 		subfolder_name = main_folder + '/' + sub_folder_names[i]
 		if not os.path.exists(subfolder_name):
 			os.makedirs(subfolder_name)
+
+
+def create_avenue_video_folders():
+	slow_fast = 'avenue_dataset_slow_fast'
+	combined = 'fixed_fast'
+	low_res = 'avenue_dataset_low_resolution'
+	fixed_fast = 'avenue_dataset_combine'
+	if not os.path.exists(slow_fast):
+		os.makedirs(slow_fast)
+	if not os.path.exists(combined):
+		os.makedirs(combined)
+	if not os.path.exists(low_res):
+		os.makedirs(low_res)
+	if not os.path.exists(fixed_fast):
+		os.makedirs(fixed_fast)
+
+
+def create_avenue_frame_folders():
+	slow_fast = 'frames_avenue_dataset_slow_fast'
+	combined = 'frames_avenue_dataset_combine'
+	low_res = 'frames_avenue_dataset_low_resolution'
+	fixed_fast = 'frames_fixed_fast'
+	if not os.path.exists(slow_fast):
+		os.makedirs(slow_fast)
+	if not os.path.exists(combined):
+		os.makedirs(combined)
+	if not os.path.exists(low_res):
+		os.makedirs(low_res)
+	if not os.path.exists(fixed_fast):
+		os.makedirs(fixed_fast)
+
+	sub_folders = []
+	for i in range(1, 22, 1):
+		if i < 10:
+			sub_folders.append('0' + str(i))
+		else:
+			sub_folders.append(str(i))
+
+	create_subfolders(sub_folders, slow_fast)
+	create_subfolders(sub_folders, combined)
+	create_subfolders(sub_folders, low_res)
+	create_subfolders(sub_folders, fixed_fast)

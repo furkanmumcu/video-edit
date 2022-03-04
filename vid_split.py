@@ -1,7 +1,7 @@
 import utils
 
 
-#vidname = '10'
+#vidname = '02'
 #utils.vid_to_jpg(vidname)
 
-utils.vids_to_jpg()
+#utils.vids_to_jpg()
