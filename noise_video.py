@@ -57,7 +57,7 @@ def create_adv_vid_low_resolution(vid_name, start_frame, duration):
 
 
 def create_adv_vid_combine(vid_name, start_frame, duration):
-	frames = create_adv_vid_fixed_fast(vid_name, start_frame, duration)
+	frames = create_adv_vid_slow_fast(vid_name, start_frame, duration)
 	utils.lower_res_frames(frames, start_frame, duration)
 
 	new_vid_name = 'avenue_dataset_combine/' + vid_name
@@ -66,7 +66,7 @@ def create_adv_vid_combine(vid_name, start_frame, duration):
 
 def noise_avenue_dataset(duration_secs, vid_fps):
 	utils.create_avenue_video_folders()
-	duration_frames = int(duration_secs * 25)
+	duration_frames = int(duration_secs * vid_fps)
 	for i in range(1, 22, 1):
 		if i < 10:
 			vid_name = '0' + str(i) + '.avi'
@@ -75,19 +75,20 @@ def noise_avenue_dataset(duration_secs, vid_fps):
 
 		vidinf = utils.vid_info(vid_name)
 
-		if vidinf[0] >= duration_frames + vid_fps:
-			secs = int(vidinf[0] / vid_fps)
-			secs = secs - duration_secs - 1
-			start_sec = random.randint(0, secs)
-			start_frame = start_sec * vid_fps
+		if vidinf[0] < duration_frames:
+			active_duration = vidinf[0]
+		else:
+			active_duration = duration_frames
 
-			#create_adv_vid_slow_fast(vid_name, start_frame, duration_frames)
-			#create_adv_vid_fixed_fast(vid_name, start_frame, duration_frames)
-			create_adv_vid_low_resolution(vid_name, start_frame, duration_frames)
-			create_adv_vid_combine(vid_name, start_frame, duration_frames)  # this will generate slow/fast too
+		start_frame = random.randint(0, vidinf[0] - active_duration)
+		# create_adv_vid_slow_fast(vid_name, start_frame, duration_frames)
+		# create_adv_vid_fixed_fast(vid_name, start_frame, duration_frames)
+		create_adv_vid_low_resolution(vid_name, start_frame, active_duration)
+		create_adv_vid_combine(vid_name, start_frame, active_duration)  # this will generate slow/fast too
 
-
-#noise_avenue_dataset(8, 25)
+	print('videos created. now creating frame jpgs.')
+	utils.avenue_to_frames()
+	print('done.')
 
 
 # Shanghai
@@ -123,7 +124,7 @@ def create_adv_frames_fixed_fast(vid_frames, start_frame, duration):
 def noise_shanghai_dataset(duration):
 	print('noise_shanghai_dataset')
 	# 1) get original data folder names
-	original_data_path = 'shanghaitech'
+	original_data_path = '_shanghaitech'
 	folders = utils.list_subfolders(original_data_path)
 
 	# 2) create folders for newly generated data
@@ -158,7 +159,7 @@ def noise_shanghai_dataset(duration):
 		# 3.2) slow-fast attack
 		print('slow-fast attack for: ' + folders[i])
 		#create_adv_frames_slow_fast(frames_2, start_frame, active_duration)
-		create_adv_frames_fixed_fast(frames_2, start_frame, active_duration)
+		create_adv_frames_slow_fast(frames_2, start_frame, active_duration)
 		utils.frames_to_jpg(frames_2, adv_data_path_slow_fast + '/' + folders[i])
 
 		# 3.3) combined attack

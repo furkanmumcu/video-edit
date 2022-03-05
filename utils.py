@@ -200,26 +200,26 @@ def slow_down(frames_array, frame_to_start, duration):
 
 
 # saves the frames of a video as jpg
-def vid_to_jpg(vid_name):
-	vid_name_ext = vid_name + '.avi'
+def vid_to_jpg(vid_name, source, dest):
+	vid_name_ext = source + '/' + vid_name + '.avi'
 	vid_frames = vid_to_frames(vid_name_ext)
 
 	digits = len(str(vid_frames.shape[0]))
 	for i in range(vid_frames.shape[0]):
 		frame_index_str = '0' * (digits - len(str(i))) + str(i)
 
-		path = vid_name + '/'
+		path = dest + '/' + vid_name + '/'
 		frame_name = frame_index_str + ".jpg"
 		cv2.imwrite(path + frame_name, vid_frames[i])
 
 
 # used for avenue dataset to jpg
-def vids_to_jpg():
+def vids_to_jpg(source, dest):
 	for i in range(1, 22, 1):
 		if i < 10:
-			vid_to_jpg('0' + str(i))
+			vid_to_jpg('0' + str(i), source, dest)
 		else:
-			vid_to_jpg(str(i))
+			vid_to_jpg(str(i), source, dest)
 
 
 def frames_to_jpg(vid_frames, path):
@@ -266,32 +266,26 @@ def create_subfolders(sub_folder_names, main_folder):
 
 def create_avenue_video_folders():
 	slow_fast = 'avenue_dataset_slow_fast'
-	combined = 'fixed_fast'
+	combined = 'avenue_dataset_combine'
 	low_res = 'avenue_dataset_low_resolution'
-	fixed_fast = 'avenue_dataset_combine'
 	if not os.path.exists(slow_fast):
 		os.makedirs(slow_fast)
 	if not os.path.exists(combined):
 		os.makedirs(combined)
 	if not os.path.exists(low_res):
 		os.makedirs(low_res)
-	if not os.path.exists(fixed_fast):
-		os.makedirs(fixed_fast)
 
 
 def create_avenue_frame_folders():
 	slow_fast = 'frames_avenue_dataset_slow_fast'
 	combined = 'frames_avenue_dataset_combine'
 	low_res = 'frames_avenue_dataset_low_resolution'
-	fixed_fast = 'frames_fixed_fast'
 	if not os.path.exists(slow_fast):
 		os.makedirs(slow_fast)
 	if not os.path.exists(combined):
 		os.makedirs(combined)
 	if not os.path.exists(low_res):
 		os.makedirs(low_res)
-	if not os.path.exists(fixed_fast):
-		os.makedirs(fixed_fast)
 
 	sub_folders = []
 	for i in range(1, 22, 1):
@@ -303,4 +297,13 @@ def create_avenue_frame_folders():
 	create_subfolders(sub_folders, slow_fast)
 	create_subfolders(sub_folders, combined)
 	create_subfolders(sub_folders, low_res)
-	create_subfolders(sub_folders, fixed_fast)
+
+
+def avenue_to_frames():
+	create_avenue_frame_folders()
+	print('avenue_to_frames slow_fast')
+	vids_to_jpg('avenue_dataset_slow_fast', 'frames_avenue_dataset_slow_fast')
+	print('avenue_to_frames combine')
+	vids_to_jpg('avenue_dataset_combine', 'frames_avenue_dataset_combine')
+	print('avenue_to_frames low_resolution')
+	vids_to_jpg('avenue_dataset_low_resolution', 'frames_avenue_dataset_low_resolution')
