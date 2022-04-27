@@ -1,69 +1,8 @@
-import numpy as np
 import utils
 import random
 
 
-def create_adv_vid_slow_fast(vid_name, start_frame, duration):
-	print('create_adv_vid_slow_fast')
-
-	vid_frames = utils.vid_to_frames(vid_name)
-	print(vid_frames.shape)
-
-	duration_slow = int(duration / 3)
-	duration_freeze = int(duration / 6)
-
-	saved_slow = utils.slow_down(vid_frames, start_frame, duration_slow)
-	saved_freeze = utils.vid_freeze(vid_frames, start_frame + duration_slow, duration_freeze)
-	saved = np.concatenate((saved_slow, saved_freeze), axis=0)
-
-	utils.speed_up(vid_frames, start_frame + duration_slow + duration_freeze, saved)
-
-	print(vid_frames.shape)
-
-	new_vid_name = 'avenue_dataset_slow_fast/' + vid_name
-	utils.frames_to_vid(vid_frames, 25, None, new_vid_name)
-	return vid_frames
-
-
-# duration: slow/fast & freeze
-# fast part is fixed amount of time
-def create_adv_vid_fixed_fast(vid_name, start_frame, duration):
-	vid_frames = utils.vid_to_frames(vid_name)
-	print(vid_frames.shape)
-
-	duration_slow = int(duration / 4)
-	duration_freeze = int((duration / 4) * 3)
-
-	saved_slow = utils.slow_down(vid_frames, start_frame, duration_slow)
-	saved_freeze = utils.vid_freeze(vid_frames, start_frame + duration_slow, duration_freeze)
-	saved = np.concatenate((saved_slow, saved_freeze), axis=0)
-	print('saved shape:' + str(saved.shape))
-
-	# new speed method
-	utils.speed_up_second(vid_frames, start_frame + duration_slow + duration_freeze, saved)
-
-	print(vid_frames.shape)
-	new_vid_name = 'fixed_fast/' + vid_name
-	utils.frames_to_vid(vid_frames, 25, None, new_vid_name)
-	return vid_frames
-
-
-def create_adv_vid_low_resolution(vid_name, start_frame, duration):
-	vid_frames = utils.vid_to_frames(vid_name)
-	utils.lower_res_frames(vid_frames, start_frame, duration)
-
-	new_vid_name = 'avenue_dataset_low_resolution/' + vid_name
-	utils.frames_to_vid(vid_frames, 25, None, new_vid_name)
-
-
-def create_adv_vid_combine(vid_name, start_frame, duration):
-	frames = create_adv_vid_slow_fast(vid_name, start_frame, duration)
-	utils.lower_res_frames(frames, start_frame, duration)
-
-	new_vid_name = 'avenue_dataset_combine/' + vid_name
-	utils.frames_to_vid(frames, 25, None, new_vid_name)
-
-
+# assumes you have 21 avenue dataset testing videos in project directory
 def noise_avenue_dataset(duration_secs, vid_fps):
 	utils.create_avenue_video_folders()
 	duration_frames = int(duration_secs * vid_fps)
@@ -83,48 +22,19 @@ def noise_avenue_dataset(duration_secs, vid_fps):
 		start_frame = random.randint(0, vidinf[0] - active_duration)
 		# create_adv_vid_slow_fast(vid_name, start_frame, duration_frames)
 		# create_adv_vid_fixed_fast(vid_name, start_frame, duration_frames)
-		create_adv_vid_low_resolution(vid_name, start_frame, active_duration)
-		create_adv_vid_combine(vid_name, start_frame, active_duration)  # this will generate slow/fast too
+		utils.create_adv_vid_low_resolution(vid_name, start_frame, active_duration)
+		utils.create_adv_vid_combine(vid_name, start_frame, active_duration)  # this will generate slow/fast too
 
 	print('videos created. now creating frame jpgs.')
 	utils.avenue_to_frames()
 	print('done.')
 
 
-# Shanghai
-
-def create_adv_frames_slow_fast(vid_frames, start_frame, duration):
-	duration_slow = int(duration / 3)
-	duration_freeze = int(duration / 6)
-
-	saved_slow = utils.slow_down(vid_frames, start_frame, duration_slow)
-	saved_freeze = utils.vid_freeze(vid_frames, start_frame + duration_slow, duration_freeze)
-	saved = np.concatenate((saved_slow, saved_freeze), axis=0)
-
-	utils.speed_up(vid_frames, start_frame + duration_slow + duration_freeze, saved)
-	print(vid_frames.shape)
-
-	return vid_frames
-
-
-def create_adv_frames_fixed_fast(vid_frames, start_frame, duration):
-	duration_slow = int(duration / 4)
-	duration_freeze = int((duration / 4) * 3)
-
-	saved_slow = utils.slow_down(vid_frames, start_frame, duration_slow)
-	saved_freeze = utils.vid_freeze(vid_frames, start_frame + duration_slow, duration_freeze)
-	saved = np.concatenate((saved_slow, saved_freeze), axis=0)
-
-	# new speed method
-	utils.speed_up_second(vid_frames, start_frame + duration_slow + duration_freeze, saved)
-
-	return vid_frames
-
-
+# assumes you have shanghai dataset(in a folder) in your project directory
 def noise_shanghai_dataset(duration):
 	print('noise_shanghai_dataset')
 	# 1) get original data folder names
-	original_data_path = '_shanghaitech'
+	original_data_path = '_shanghaitech'  # name of the shanghai dataset folder
 	folders = utils.list_subfolders(original_data_path)
 
 	# 2) create folders for newly generated data
@@ -136,8 +46,6 @@ def noise_shanghai_dataset(duration):
 
 	adv_data_path_combine = 'shanghaitech_combined'
 	utils.create_subfolders(folders, adv_data_path_combine)
-
-	unchanged = []
 
 	# 3) attack for each video
 	for i in range(0, len(folders), 1):
@@ -159,13 +67,45 @@ def noise_shanghai_dataset(duration):
 		# 3.2) slow-fast attack
 		print('slow-fast attack for: ' + folders[i])
 		#create_adv_frames_slow_fast(frames_2, start_frame, active_duration)
-		create_adv_frames_slow_fast(frames_2, start_frame, active_duration)
+		utils.create_adv_frames_slow_fast(frames_2, start_frame, active_duration)
 		utils.frames_to_jpg(frames_2, adv_data_path_slow_fast + '/' + folders[i])
 
 		# 3.3) combined attack
 		print('combined attack attack for: ' + folders[i])
-		create_adv_frames_slow_fast(frames_1, start_frame, active_duration)  # frames1 already has low quality, just apply slow-fast
+		utils.create_adv_frames_slow_fast(frames_1, start_frame, active_duration)  # frames1 already has low quality, just apply slow-fast
 		utils.frames_to_jpg(frames_1, adv_data_path_combine + '/' + folders[i])
 
 
-#noise_shanghai_dataset(300)
+# assumes you have ucf-crime dataset in "source" folder located in project directory
+def noise_ucf_crime(duration, source, dest):
+	print('noise_ucf_crime')
+
+	# 1) get original data folder names
+	folders = utils.list_subfolders(source)
+
+	# 2) create folders for newly generated data
+	utils.create_subfolders(folders, dest)
+
+	for folder in folders:
+		video_names = utils.list_files(source + '/' + folder)
+		for video_name in video_names:
+			vid_frames1 = utils.vid_to_frames(source + '/' + folder + '/' + video_name)
+			# vid_frames2 = utils.vid_to_frames(source + '/' + folder + '/' + video_name)
+
+			if vid_frames1.shape[0] < duration:
+				active_duration = vid_frames1.shape[0]
+			else:
+				active_duration = duration
+
+			start_frame = random.randint(0, vid_frames1.shape[0] - active_duration)
+
+			# 3) combined attack
+			utils.lower_res_frames(vid_frames1, start_frame, active_duration)  # start / duration
+
+			utils.create_adv_frames_slow_fast(vid_frames1, start_frame, active_duration)  # frames1 already has low quality, just apply slow-fast
+
+			adv_video_name = dest + '/' + folder + '/' + video_name
+			utils.frames_to_vid(vid_frames1, 25, None, adv_video_name)
+
+	print('noise_ucf_crime done!')
+

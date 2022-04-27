@@ -6,6 +6,8 @@ from PIL import Image
 import copy
 import time
 from os import walk
+from os import listdir
+from os.path import isfile, join
 
 
 # input: video name
@@ -27,12 +29,12 @@ def vid_to_frames(vid_name):
 
 
 # input: numpy array contains frames
-# output: creates video
+# output: creates video #mp4v XVID
 def frames_to_vid(frames_array, fps, fourcc, vid_name):
 	print('func: frames_to_vid')
 	# fourcc = cv2.VideoWriter_fourcc(*fourcc_string) # FourCC is a 4-byte code used to specify the video codec.
 	# fourcc = cv2.VideoWriter_fourcc(*'MP4V')  # FourCC is a 4-byte code used to specify the video codec.
-	fourcc = cv2.VideoWriter_fourcc(*'XVID')  # FourCC is a 4-byte code used to specify the video codec.
+	fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # FourCC is a 4-byte code used to specify the video codec.
 	video = cv2.VideoWriter(vid_name, fourcc, float(fps), (frames_array.shape[2], frames_array.shape[1]))
 
 	for frame_count in range(frames_array.shape[0]):
@@ -270,6 +272,11 @@ def create_subfolders(sub_folder_names, main_folder):
 			os.makedirs(subfolder_name)
 
 
+def list_files(path):
+	arr = [f for f in listdir(path) if isfile(join(path, f))]
+	return arr
+
+
 def create_avenue_video_folders():
 	slow_fast = 'avenue_dataset_slow_fast'
 	combined = 'avenue_dataset_combine'
@@ -370,3 +377,94 @@ def replicate_avenue_frames_twice():
 			vid_name = str(i)
 
 		replicate_frames_twice(vid_name + '.avi', vid_name)
+
+
+#**** NOISE UTILS
+def create_adv_vid_slow_fast(vid_name, start_frame, duration):
+	print('create_adv_vid_slow_fast')
+
+	vid_frames = vid_to_frames(vid_name)
+	print(vid_frames.shape)
+
+	duration_slow = int(duration / 3)
+	duration_freeze = int(duration / 6)
+
+	saved_slow = slow_down(vid_frames, start_frame, duration_slow)
+	saved_freeze = vid_freeze(vid_frames, start_frame + duration_slow, duration_freeze)
+	saved = np.concatenate((saved_slow, saved_freeze), axis=0)
+
+	speed_up(vid_frames, start_frame + duration_slow + duration_freeze, saved)
+
+	print(vid_frames.shape)
+
+	new_vid_name = 'avenue_dataset_slow_fast/' + vid_name
+	frames_to_vid(vid_frames, 25, None, new_vid_name)
+	return vid_frames
+
+
+# duration: slow/fast & freeze
+# fast part is fixed amount of time
+def create_adv_vid_fixed_fast(vid_name, start_frame, duration):
+	vid_frames = vid_to_frames(vid_name)
+	print(vid_frames.shape)
+
+	duration_slow = int(duration / 4)
+	duration_freeze = int((duration / 4) * 3)
+
+	saved_slow = slow_down(vid_frames, start_frame, duration_slow)
+	saved_freeze = vid_freeze(vid_frames, start_frame + duration_slow, duration_freeze)
+	saved = np.concatenate((saved_slow, saved_freeze), axis=0)
+	print('saved shape:' + str(saved.shape))
+
+	# new speed method
+	speed_up_second(vid_frames, start_frame + duration_slow + duration_freeze, saved)
+
+	print(vid_frames.shape)
+	new_vid_name = 'fixed_fast/' + vid_name
+	frames_to_vid(vid_frames, 25, None, new_vid_name)
+	return vid_frames
+
+
+def create_adv_vid_low_resolution(vid_name, start_frame, duration):
+	vid_frames = vid_to_frames(vid_name)
+	lower_res_frames(vid_frames, start_frame, duration)
+
+	new_vid_name = 'avenue_dataset_low_resolution/' + vid_name
+	frames_to_vid(vid_frames, 25, None, new_vid_name)
+
+
+def create_adv_vid_combine(vid_name, start_frame, duration):
+	frames = create_adv_vid_slow_fast(vid_name, start_frame, duration)
+	lower_res_frames(frames, start_frame, duration)
+
+	new_vid_name = 'avenue_dataset_combine/' + vid_name
+	frames_to_vid(frames, 25, None, new_vid_name)
+
+
+#used in shanghai & ucf-crime
+def create_adv_frames_slow_fast(vid_frames, start_frame, duration):
+	duration_slow = int(duration / 3)
+	duration_freeze = int(duration / 6)
+
+	saved_slow = slow_down(vid_frames, start_frame, duration_slow)
+	saved_freeze = vid_freeze(vid_frames, start_frame + duration_slow, duration_freeze)
+	saved = np.concatenate((saved_slow, saved_freeze), axis=0)
+
+	speed_up(vid_frames, start_frame + duration_slow + duration_freeze, saved)
+	print(vid_frames.shape)
+
+	return vid_frames
+
+
+def create_adv_frames_fixed_fast(vid_frames, start_frame, duration):
+	duration_slow = int(duration / 4)
+	duration_freeze = int((duration / 4) * 3)
+
+	saved_slow = slow_down(vid_frames, start_frame, duration_slow)
+	saved_freeze = vid_freeze(vid_frames, start_frame + duration_slow, duration_freeze)
+	saved = np.concatenate((saved_slow, saved_freeze), axis=0)
+
+	# new speed method
+	speed_up_second(vid_frames, start_frame + duration_slow + duration_freeze, saved)
+
+	return vid_frames
