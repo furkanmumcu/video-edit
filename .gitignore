@@ -3,10 +3,11 @@ venv/
 dump/
 __pycache__/
 playground.py
-shanghaitech/
+_shanghaitech/
 shanghaitech_slow_fast/
 shanghaitech_lower_resolution/
 shanghaitech_combined/
-adv_shanghaitech/
-Data/
+_adv_shanghaitech/
+_Data/
 _results/
+custom_video.py

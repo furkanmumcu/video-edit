@@ -5,6 +5,7 @@ import numpy as np
 from PIL import Image
 import copy
 import time
+from os import walk
 
 
 # input: video name
@@ -246,6 +247,11 @@ def folder_to_frames(folder_name, path):
 	return frames
 
 
+def list_file_names(path):
+	file_names = next(walk('videos'), (None, None, []))[2]
+	return file_names
+
+
 # list of subfolders of a directory
 def list_subfolders(path):
 	subfolders = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
@@ -307,3 +313,60 @@ def avenue_to_frames():
 	vids_to_jpg('avenue_dataset_combine', 'frames_avenue_dataset_combine')
 	print('avenue_to_frames low_resolution')
 	vids_to_jpg('avenue_dataset_low_resolution', 'frames_avenue_dataset_low_resolution')
+
+
+def create_shanghai_training_frames(source, dest):
+	sub_folder_names = list_file_names(source)
+	for i in range(len(sub_folder_names)):
+		sub_folder_names[i] = sub_folder_names[i].split('.')[0]
+
+	#create_subfolders(sub_folder_names, dest)
+
+	for i in range(0, len(sub_folder_names), 1):
+		print('current vid name: ' + sub_folder_names[i] + ' current index: ' + str(i))
+		vid_to_jpg(sub_folder_names[i], source, dest)
+
+	print('func: create_shanghai_training_frames done')
+
+
+def replicate_frames(vid_name, dest):
+	vid_frames = vid_to_frames(vid_name)
+	print(vid_frames.shape)
+
+	for i in range(0, vid_frames.shape[0], 10):
+		if i < vid_frames.shape[0] - 10:
+			vid_frames[i + 5] = vid_frames[i + 4]
+
+	frames_to_jpg(vid_frames, dest)
+
+
+def replicate_avenue_frames():
+	for i in range(1, 22, 1):
+		if i < 10:
+			vid_name = '0' + str(i)
+		else:
+			vid_name = str(i)
+
+		replicate_frames(vid_name + '.avi', vid_name)
+
+
+def replicate_frames_twice(vid_name, dest):
+	vid_frames = vid_to_frames(vid_name)
+	print(vid_frames.shape)
+
+	for i in range(0, vid_frames.shape[0], 10):
+		if i < vid_frames.shape[0] - 10:
+			vid_frames[i + 4] = vid_frames[i + 3]
+			vid_frames[i + 9] = vid_frames[i + 8]
+
+	frames_to_jpg(vid_frames, dest)
+
+
+def replicate_avenue_frames_twice():
+	for i in range(1, 22, 1):
+		if i < 10:
+			vid_name = '0' + str(i)
+		else:
+			vid_name = str(i)
+
+		replicate_frames_twice(vid_name + '.avi', vid_name)
