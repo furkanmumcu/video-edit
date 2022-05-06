@@ -8,6 +8,7 @@ import time
 from os import walk
 from os import listdir
 from os.path import isfile, join
+import ffmpegio
 
 
 # input: video name
@@ -28,13 +29,18 @@ def vid_to_frames(vid_name):
 	return vid_frames
 
 
+def vid_to_frames_v2(vid_name):
+	fs, i = ffmpegio.video.read(vid_name, pix_fmt='rgb24')
+	return i
+
+
 # input: numpy array contains frames
-# output: creates video #mp4v XVID
+# output: creates video #mp4v XVID avc1
 def frames_to_vid(frames_array, fps, fourcc, vid_name):
 	print('func: frames_to_vid')
 	# fourcc = cv2.VideoWriter_fourcc(*fourcc_string) # FourCC is a 4-byte code used to specify the video codec.
 	# fourcc = cv2.VideoWriter_fourcc(*'MP4V')  # FourCC is a 4-byte code used to specify the video codec.
-	fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # FourCC is a 4-byte code used to specify the video codec.
+	fourcc = cv2.VideoWriter_fourcc(*'avc1')  # FourCC is a 4-byte code used to specify the video codec.
 	video = cv2.VideoWriter(vid_name, fourcc, float(fps), (frames_array.shape[2], frames_array.shape[1]))
 
 	for frame_count in range(frames_array.shape[0]):
@@ -76,7 +82,7 @@ def vid_freeze(frames_array, frame_to_start, duration):
 
 # funtion to lower frame resolution
 def lower_res_frame(frame):
-	print('func: lower_frame_res')
+	#print('func: lower_frame_res')
 
 	# create jpg file from frame array
 	cv2.imwrite("temp_img/frame.jpg", frame)
@@ -113,6 +119,9 @@ def safe_remove(path, retries=3, sleep=0.1):
 
 def lower_res_frames(frames_array, frame_to_start, duration):
 	print('func: lower_res_frames')
+	if not os.path.exists('temp_img'):
+		os.makedirs('temp_img')
+
 	for i in range(duration):
 		temp = lower_res_frame(frames_array[frame_to_start + i])
 		frames_array[frame_to_start + i] = temp
@@ -377,6 +386,24 @@ def replicate_avenue_frames_twice():
 			vid_name = str(i)
 
 		replicate_frames_twice(vid_name + '.avi', vid_name)
+
+
+def list_video_durations(main_path):
+	vid_paths = []
+	folders = list_subfolders(main_path)
+	for folder in folders:
+		files = list_files(main_path + '/' + folder)
+		for file in files:
+			entry = main_path + '/' + folder + '/' + file
+			vid_paths.append(entry)
+
+	for vid_path in vid_paths:
+		inf = vid_info(vid_path)  # frame_count, frame_height, frame_width, fps, fourcc
+		frame_count = inf[0]
+		fps = inf[3]
+		vid_minute = (frame_count/fps) / 60
+		if vid_minute > 5:
+			print('video: ' + vid_path + ' duration: ' + str(vid_minute))
 
 
 #**** NOISE UTILS

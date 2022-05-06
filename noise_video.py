@@ -1,5 +1,6 @@
 import utils
 import random
+import gc
 
 
 # assumes you have 21 avenue dataset testing videos in project directory
@@ -77,8 +78,9 @@ def noise_shanghai_dataset(duration):
 
 
 # assumes you have ucf-crime dataset in "source" folder located in project directory
-def noise_ucf_crime(duration, source, dest):
+def noise_ucf_crime(source, dest):  # duration, source, dest
 	print('noise_ucf_crime')
+	remaining_videos = []
 
 	# 1) get original data folder names
 	folders = utils.list_subfolders(source)
@@ -89,23 +91,39 @@ def noise_ucf_crime(duration, source, dest):
 	for folder in folders:
 		video_names = utils.list_files(source + '/' + folder)
 		for video_name in video_names:
-			vid_frames1 = utils.vid_to_frames(source + '/' + folder + '/' + video_name)
-			# vid_frames2 = utils.vid_to_frames(source + '/' + folder + '/' + video_name)
+			video_path = source + '/' + folder + '/' + video_name
+			vid_inf = utils.vid_info(video_path)
+			vid_duration = (vid_inf[0] / vid_inf[3]) / 60  # in minutes
 
-			if vid_frames1.shape[0] < duration:
-				active_duration = vid_frames1.shape[0]
+			if vid_duration < 30:
+				print('noising: ' + video_path)
+				vid_frames1 = utils.vid_to_frames(source + '/' + folder + '/' + video_name)
+				# vid_frames2 = utils.vid_to_frames(source + '/' + folder + '/' + video_name)
+
+				'''
+				if vid_frames1.shape[0] < duration:
+					active_duration = vid_frames1.shape[0]
+				else:
+					active_duration = duration
+				'''
+
+				active_duration = int(vid_frames1.shape[0] / 3)
+
+				start_frame = random.randint(0, vid_frames1.shape[0] - active_duration)
+
+				# 3) combined attack
+				adv_video_name = dest + '/' + folder + '/' + video_name
+
+				utils.lower_res_frames(vid_frames1, start_frame, active_duration)  # start / duration
+				utils.create_adv_frames_slow_fast(vid_frames1, start_frame, active_duration)  # frames1 already has low quality, just apply slow-fast
+				utils.frames_to_vid(vid_frames1, 30, None, adv_video_name)
+
+				del vid_frames1
+				gc.collect()
 			else:
-				active_duration = duration
+				print(video_path + ' left!')
+				remaining_videos.append(video_path)
 
-			start_frame = random.randint(0, vid_frames1.shape[0] - active_duration)
-
-			# 3) combined attack
-			utils.lower_res_frames(vid_frames1, start_frame, active_duration)  # start / duration
-
-			utils.create_adv_frames_slow_fast(vid_frames1, start_frame, active_duration)  # frames1 already has low quality, just apply slow-fast
-
-			adv_video_name = dest + '/' + folder + '/' + video_name
-			utils.frames_to_vid(vid_frames1, 25, None, adv_video_name)
-
+	print(remaining_videos)
 	print('noise_ucf_crime done!')
 
