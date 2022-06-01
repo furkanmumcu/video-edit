@@ -2,7 +2,6 @@ venv/
 .idea/
 dump/
 __pycache__/
-playground.py
 _shanghaitech/
 shanghaitech_slow_fast/
 shanghaitech_lower_resolution/
